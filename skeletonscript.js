@@ -93,12 +93,11 @@ function main() {
   //GUI Control
   var controls = new (function () {
     this.rotY = 0;
-    this.visibility = true;
   })();
 
   var gui = new dat.GUI();
   gui.add(controls, 'rotY', 0, 2 * Math.PI);
-  gui.add(controls, 'visibility');
+  
 
   //Trackball Control mit der Maus
   var trackballControls = new THREE.TrackballControls(camera, canvas);
