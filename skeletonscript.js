@@ -1,3 +1,4 @@
+
 main();
 let raycaster = new THREE.Raycaster();
 let mouse = new THREE.Vector2();
@@ -44,25 +45,24 @@ function main() {
   const models = {};
 
   function loadGLTFModel(modelPath, scene, parent) {
-    const modelName = modelPath.split("/").pop().split(".")[0];
+    const latinName = modelPathAndNames[modelPath];
 
-    console.log(modelName)
+    console.log(latinName);
 
     gltflLoader.load(
       modelPath,
       function (gltf) {
-
         // Anpegasst an die Szene, damit das Skelett etwas weiter links steht
         gltf.scene.scale.set(2, 2, 2);
         gltf.scene.position.y -= 6;
         gltf.scene.position.x -= 3;
         gltf.scene.rotation.y = -Math.PI / 6;
-        gltf.scene.userData.modelKey = modelName; // Das Model verfügt dann über einen Key
+        gltf.scene.userData.modelKey = latinName; // Das Model verfügt dann über einen Key
 
         scene.add(gltf.scene);
         skeleton.push(gltf.scene);
-        models[modelName] = gltf.scene;
-        createModelControl(modelName, gltf.scene);
+        models[latinName] = gltf.scene;
+        createModelControl(latinName, gltf.scene);
       },
       function (xhr) {
         console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
@@ -76,28 +76,28 @@ function main() {
   const skeleton = []; // Für das gemeinsame Rotieren des gesamten Skelets in der Control Methode
   // Objektpfade im Array speichern und in einer Schleife laden
 
-  const modelPaths = [
-    "objects/spine.glb",
-    "objects/schaedel.glb",
-    "objects/hips.glb",
-    "objects/oberarmlinks.glb",
-    "objects/unterarmlinks.glb",
-    "objects/handlinks.glb",
-    "objects/oberarmrechts.glb",
-    "objects/unterarmrechts.glb",
-    "objects/handrechts.glb",
-    "objects/ripcage.glb",
-    "objects/oberschenkelleft.glb",
-    "objects/unterschenkelleft.glb",
-    "objects/knieleft.glb",
-    "objects/fussleft.glb",
-    "objects/oberschenkelright.glb",
-    "objects/unterschenkelright.glb",
-    "objects/knieright.glb",
-    "objects/fussright.glb",
-  ];
+  const modelPathAndNames = {
+    "objects/spine.glb": "Columna vertebralis",
+    "objects/schaedel.glb": "Cranium",
+    "objects/hips.glb": "Coxa",
+    "objects/oberarmlinks.glb": "Humerus sinistrum",
+    "objects/unterarmlinks.glb": "Antebrachium sinistrum",
+    "objects/handlinks.glb": "Manus sinistra",
+    "objects/oberarmrechts.glb": "Humerus dextrum",
+    "objects/unterarmrechts.glb": "Antebrachium dextrum",
+    "objects/handrechts.glb": "Manus dextra",
+    "objects/ripcage.glb": "Thorax",
+    "objects/oberschenkelleft.glb": "Femur dextrum",
+    "objects/unterschenkelleft.glb": "Crus dextrum",
+    "objects/knieleft.glb": "Genu dextrum",
+    "objects/fussleft.glb": "Pes dexter",
+    "objects/oberschenkelright.glb": "Femur sinistrum",
+    "objects/unterschenkelright.glb": "Crus sinistrum",
+    "objects/knieright.glb": "Genu sininstrum",
+    "objects/fussright.glb": "Pes sinister"
+  };
 
-  modelPaths.forEach((path) => loadGLTFModel(path, scene));
+  Object.keys(modelPathAndNames).forEach((path) => loadGLTFModel(path, scene));
 
   //GUI Control
   var controls = new (function () {
@@ -114,29 +114,58 @@ function main() {
 
   function createModelControl(name, model) {
     controls[name] = true;
-    guiVisibileControl.add(controls, name).name(name).onChange(function (value) {
-      model.visible = value;
-    });
-    controls.allVisible = Object.keys(models).every(key => models[key].visible);
+    guiVisibileControl
+      .add(controls, name)
+      .name(name)
+      .onChange(function (value) {
+        model.visible = value;
+      });
+    controls.allVisible = Object.keys(models).every(
+      (key) => models[key].visible
+    );
     gui.__controllers.forEach(function (controller) {
-      if (controller.property === 'allVisible') {
+      if (controller.property === "allVisible") {
         controller.updateDisplay();
       }
     });
   }
   // Hier alle verbergen oder sichtbar machen
 
-  guiVisibileControl.add(controls, 'allBodyparts').name('All Body Parts').onChange(function (value) {
+  guiVisibileControl
+  .add(controls, "allBodyparts")
+  .name("Skeleton")
+  .onChange(function (value) {
     Object.keys(models).forEach(function (key) {
       models[key].visible = value;
       controls[key] = value;
     });
-    guiVisibileControl.__controllers.forEach(function(controller) {
-      if (controller.property === key) {
-          controller.updateDisplay();
+
+    // Aktualisieren Sie die Anzeige für jede spezifische Kontrolle
+    guiVisibileControl.__controllers.forEach(function (controller) {
+      if (Object.keys(models).includes(controller.property)) {
+        controller.updateDisplay();
       }
+    });
   });
-});
+
+    //Exemplarischer Fontloader
+    const fontLoader = new THREE.FontLoader();
+    fontLoader.load(
+      'node_modules/three/examples/fonts/droid/droid_sans_mono_regular.typeface.json',
+      (droidFont) => {
+        const textGeometry = new THREE.TextGeometry('Human skeleton', {
+          size: 0.5,
+          height: 0.1,
+          font: droidFont,
+        });
+        const textMaterial = new THREE.MeshNormalMaterial();
+        const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+        textMesh.position.x = -10;
+        textMesh.position.y = 5;
+        scene.add(textMesh);
+      }
+    );
+
 
 
   //Trackball Control mit der Maus
@@ -147,9 +176,7 @@ function main() {
   document.addEventListener("mousemove", mouseHover, false);
   //window.addEventListener("click", onMouseClick);
 
-
   function mouseHover(event) {
-
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
@@ -161,25 +188,24 @@ function main() {
     if (intersects.length > 0) {
       let intersectedObject = intersects[0].object;
       if (intersected !== intersectedObject) {
-        if (intersected) intersected.material.color.setHex(intersected.currentHex);
+        if (intersected)
+          intersected.material.color.setHex(intersected.currentHex);
         intersected = intersectedObject;
         intersected.currentHex = intersected.material.color.getHex();
         intersected.material.color.setHex(0x800080); // Hover-Farbe momentan auf pink gesetzt
       }
 
       label.style.display = "block";
-      label.style.left = (event.clientX + 10) + 'px';
-      label.style.top = (event.clientY + 10) + 'px';
-      label.textContent = intersected.parent.userData.modelKey || 'Incorrect';
-
+      label.style.left = event.clientX + 10 + "px";
+      label.style.top = event.clientY + 10 + "px";
+      label.textContent = intersected.parent.userData.modelKey || "Incorrect";
     } else {
-      if (intersected) intersected.material.color.setHex(intersected.currentHex);
+      if (intersected)
+        intersected.material.color.setHex(intersected.currentHex);
       intersected = null;
       label.style.display = "none";
     }
   }
-
-
 
   function animate() {
     if (resizeGLToDisplaySize(renderer)) {
@@ -193,6 +219,7 @@ function main() {
     skeleton.forEach((skeleton) => {
       skeleton.rotation.y = -controls.rotY;
     });
+
     requestAnimationFrame(animate);
     renderer.render(scene, camera);
   }
@@ -222,18 +249,3 @@ function initStats() {
   document.body.appendChild(stats.domElement);
   return stats;
 }
-
-/*function onMouseClick(event) {
-    
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-    raycaster.setFromCamera(mouse, camera);
-
-    const intersects = raycaster.intersectObjects(Object.values(models), true);
-
-    if (intersects.length > 0) {
-      const clickedModel = intersects[0].object;
-      clickedModel.visible = false;
-    }
-  }*/
