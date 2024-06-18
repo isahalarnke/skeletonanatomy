@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
@@ -23,9 +22,22 @@
             font-size: 20px;
             font-weight: bold;
             color: hsla(160, 60%, 1%, 0.929);
-            
         }
-        
+        #labelshow {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            z-index: 1;
+            padding: 10px 20px;
+            background-color: #dc3a0d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #labelshow:hover {
+            background-color: #df3c0a;
+        }
     </style>
     <script type="text/javascript" charset="UTF-8" src="../libs/three/three.js"></script>
     <script type="text/javascript" charset="UTF-8" src="../libs/three/controls/TrackballControls.js"></script>
@@ -39,9 +51,9 @@
     <script type="text/javascript" charset="UTF-8" src="../libs/three/loaders/FontLoader.js"></script>
     <script type="text/javascript" charset="UTF-8" src="../libs/three/loaders/TTFLoader.js"></script>
     <script type="text/javascript" charset="UTF-8" src="../libs/three/geometries/TextGeometry.js"></script>
-
 </head>
 <body>
+    <button id="labelshow">Names</button>
     <canvas id="c"></canvas>
     <div id="label"></div>
 </body>
