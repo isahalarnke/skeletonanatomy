@@ -1,10 +1,12 @@
-
 main();
-let raycaster = new THREE.Raycaster();
-let mouse = new THREE.Vector2();
-let intersected;
 
 function main() {
+  let raycaster = new THREE.Raycaster();
+  let mouse = new THREE.Vector2();
+  let intersected;
+  let labelsVisible = false;
+  let labelObjects = [];
+
   var stats = initStats();
   // create context
   const canvas = document.querySelector("#c");
@@ -27,7 +29,7 @@ function main() {
     nearPlane,
     farPlane
   );
-  camera.position.set(-10, 1, 15);
+  camera.position.set(-10, 1, 20);
   camera.rotation.y = Math.PI / 4;
 
   // create the scene
@@ -63,6 +65,69 @@ function main() {
         skeleton.push(gltf.scene);
         models[latinName] = gltf.scene;
         createModelControl(latinName, gltf.scene);
+
+        let positionOffset;
+      switch (latinName) {
+        case "Columna vertebralis":
+          positionOffset = new THREE.Vector3(0.5, 2, 0);
+          break;
+        case "Cranium":
+          positionOffset = new THREE.Vector3(-1, 1.5, 0);
+          break;
+        case "Coxa":
+          positionOffset = new THREE.Vector3(-0.7, 0, 0.5);
+          break;
+        case "Humerus sinistrum":
+          positionOffset = new THREE.Vector3(0.2, 1, 0);
+          break;
+        case "Antebrachium sinistrum":
+          positionOffset = new THREE.Vector3(1, 0, 0);
+          break;
+        case "Manus sinistra":
+          positionOffset = new THREE.Vector3(1, -0.5, 0);
+          break;
+        case "Humerus dextrum":
+          positionOffset = new THREE.Vector3(-4, 1, 0);
+          break;
+        case "Antebrachium dextrum":
+          positionOffset = new THREE.Vector3(-5.5, 0, 0);
+          break;
+        case "Manus dextra":
+          positionOffset = new THREE.Vector3(-4, -0.5, 0);
+          break;
+        case "Thorax":
+          positionOffset = new THREE.Vector3(-0.2, 0, 0.7);
+          break;
+        case "Femur dextrum":
+          positionOffset = new THREE.Vector3(-3, -0.5, 0);
+          break;
+        case "Crus dextrum":
+          positionOffset = new THREE.Vector3(-3, 0, 0);
+          break;
+        case "Genu dextrum":
+          positionOffset = new THREE.Vector3(-3, -0.3, 0);
+          break;
+        case "Pes dexter":
+          positionOffset = new THREE.Vector3(-2.5, 0, 0);
+          break;
+        case "Femur sinistrum":
+          positionOffset = new THREE.Vector3(0.1, -0.5, 0);
+          break;
+        case "Crus sinistrum":
+          positionOffset = new THREE.Vector3(0, 0, 0);
+          break;
+        case "Genu sinistrum":
+          positionOffset = new THREE.Vector3(0.3, -0.3, 0);
+          break;
+        case "Pes sinister":
+          positionOffset = new THREE.Vector3(0, 0, 0);
+          break;
+        default:
+          positionOffset = new THREE.Vector3(0, 1, 0);
+      }
+
+
+      addLabel(latinName, gltf.scene, positionOffset);
       },
       function (xhr) {
         console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
@@ -93,8 +158,8 @@ function main() {
     "objects/fussleft.glb": "Pes dexter",
     "objects/oberschenkelright.glb": "Femur sinistrum",
     "objects/unterschenkelright.glb": "Crus sinistrum",
-    "objects/knieright.glb": "Genu sininstrum",
-    "objects/fussright.glb": "Pes sinister"
+    "objects/knieright.glb": "Genu sinistrum",
+    "objects/fussright.glb": "Pes sinister",
   };
 
   Object.keys(modelPathAndNames).forEach((path) => loadGLTFModel(path, scene));
@@ -132,41 +197,57 @@ function main() {
   // Hier alle verbergen oder sichtbar machen
 
   guiVisibileControl
-  .add(controls, "allBodyparts")
-  .name("Skeleton")
-  .onChange(function (value) {
-    Object.keys(models).forEach(function (key) {
-      models[key].visible = value;
-      controls[key] = value;
+    .add(controls, "allBodyparts")
+    .name("Skeleton")
+    .onChange(function (value) {
+      Object.keys(models).forEach(function (key) {
+        models[key].visible = value;
+        controls[key] = value;
+      });
+
+      // Aktualisieren Sie die Anzeige für jede spezifische Kontrolle
+      guiVisibileControl.__controllers.forEach(function (controller) {
+        if (Object.keys(models).includes(controller.property)) {
+          controller.updateDisplay();
+        }
+      });
     });
 
-    // Aktualisieren Sie die Anzeige für jede spezifische Kontrolle
-    guiVisibileControl.__controllers.forEach(function (controller) {
-      if (Object.keys(models).includes(controller.property)) {
-        controller.updateDisplay();
-      }
-    });
+  // Schriftart laden
+  const fontLoader = new THREE.FontLoader();
+  let loadedFont;
+  fontLoader.load("libs/fonts/Roboto_Regular.json", (font) => {
+    loadedFont = font;
   });
 
-    //Exemplarischer Fontloader
-    const fontLoader = new THREE.FontLoader();
-    fontLoader.load(
-      'node_modules/three/examples/fonts/droid/droid_sans_mono_regular.typeface.json',
-      (droidFont) => {
-        const textGeometry = new THREE.TextGeometry('Human skeleton', {
-          size: 0.5,
-          height: 0.1,
-          font: droidFont,
-        });
-        const textMaterial = new THREE.MeshNormalMaterial();
-        const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-        textMesh.position.x = -10;
-        textMesh.position.y = 5;
-        scene.add(textMesh);
-      }
-    );
+  // Beschriftungsfunktion mit 3D Fonts
+  function addLabel(name, model, positionOffset = new THREE.Vector3(0, 0, 0)) {
+    if (!loadedFont) {
+      setTimeout(() => addLabel(name, model, positionOffset), 100);
+      return;
+    }
 
+    const textGeometry = new THREE.TextGeometry(name, {
+      size: 0.35,
+      height: 0.1,
+      font: loadedFont,
+    });
+    const textMaterial = new THREE.MeshPhongMaterial({
+      color: 0xff00ff,
+      shininess: 50,
+    });
+  
+    const textMesh = new THREE.Mesh(textGeometry, textMaterial);
 
+  
+    const boundingBox = new THREE.Box3().setFromObject(model);
+    const modelHeight = boundingBox.max.y - boundingBox.min.y;
+    textMesh.position.copy(boundingBox.getCenter(new THREE.Vector3()));
+    textMesh.position.add(positionOffset);
+    textMesh.visible = labelsVisible;
+    labelObjects.push(textMesh);
+    scene.add(textMesh);
+  }
 
   //Trackball Control mit der Maus
   var trackballControls = new THREE.TrackballControls(camera, canvas);
@@ -174,7 +255,14 @@ function main() {
 
   //Listener für die Mouse
   document.addEventListener("mousemove", mouseHover, false);
-  //window.addEventListener("click", onMouseClick);
+
+  //Listener für das Button Beschriftung Event
+  document.getElementById("labelshow").addEventListener("click", function () {
+    labelsVisible = !labelsVisible;
+    labelObjects.forEach((label) => {
+      label.visible = labelsVisible;
+    });
+  });
 
   function mouseHover(event) {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -192,7 +280,7 @@ function main() {
           intersected.material.color.setHex(intersected.currentHex);
         intersected = intersectedObject;
         intersected.currentHex = intersected.material.color.getHex();
-        intersected.material.color.setHex(0x800080); // Hover-Farbe momentan auf pink gesetzt
+        intersected.material.color.setHex(0x800080);
       }
 
       label.style.display = "block";
@@ -218,6 +306,9 @@ function main() {
 
     skeleton.forEach((skeleton) => {
       skeleton.rotation.y = -controls.rotY;
+    });
+    labelObjects.forEach((label) =>{
+      label.rotation.y = -controls.rotY;
     });
 
     requestAnimationFrame(animate);
