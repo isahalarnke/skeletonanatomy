@@ -25,18 +25,50 @@
         }
         #labelshow {
             position: absolute;
-            top: 40px;
-            left: 40px;
+            top: 100px;
+            left: 50px;
             z-index: 1;
-            padding: 10px 20px;
-            background-color: #dc3a0d;
+            padding: 15px 30px;
+            background-color: #9907b6;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         #labelshow:hover {
-            background-color: #df3c0a;
+            background-color: #198a88;
+        }
+        #quiz {
+            position: absolute;
+            bottom: 30px;
+            left: 50px;
+            z-index: 1;
+            padding: 15px 30px;
+            background-color: #3a0dc4;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        #quiz:hover {
+            background-color: #198a88;
+        }
+        #quiz-questions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 18px;
+            width: 80%;
+            text-align: center;
         }
     </style>
     <script type="text/javascript" charset="UTF-8" src="../libs/three/three.js"></script>
@@ -53,9 +85,11 @@
     <script type="text/javascript" charset="UTF-8" src="../libs/three/geometries/TextGeometry.js"></script>
 </head>
 <body>
-    <button id="labelshow">Names</button>
+    <button id="labelshow">Terms</button>
+    <button id="quiz">Start Quiz</button>
     <canvas id="c"></canvas>
     <div id="label"></div>
+    <div id="quiz-questions" style="display: none;"></div>
 </body>
 <script type="module" src="./skeletonscript.js"></script>
 </html>

@@ -6,6 +6,7 @@ function main() {
   let intersected;
   let labelsVisible = false;
   let labelObjects = [];
+  let quizmode = false;
 
   var stats = initStats();
   // create context
@@ -67,67 +68,66 @@ function main() {
         createModelControl(latinName, gltf.scene);
 
         let positionOffset;
-      switch (latinName) {
-        case "Columna vertebralis":
-          positionOffset = new THREE.Vector3(0.5, 2, 0);
-          break;
-        case "Cranium":
-          positionOffset = new THREE.Vector3(-1, 1.5, 0);
-          break;
-        case "Coxa":
-          positionOffset = new THREE.Vector3(-0.7, 0, 0.5);
-          break;
-        case "Humerus sinistrum":
-          positionOffset = new THREE.Vector3(0.2, 1, 0);
-          break;
-        case "Antebrachium sinistrum":
-          positionOffset = new THREE.Vector3(1, 0, 0);
-          break;
-        case "Manus sinistra":
-          positionOffset = new THREE.Vector3(1, -0.5, 0);
-          break;
-        case "Humerus dextrum":
-          positionOffset = new THREE.Vector3(-4, 1, 0);
-          break;
-        case "Antebrachium dextrum":
-          positionOffset = new THREE.Vector3(-5.5, 0, 0);
-          break;
-        case "Manus dextra":
-          positionOffset = new THREE.Vector3(-4, -0.5, 0);
-          break;
-        case "Thorax":
-          positionOffset = new THREE.Vector3(-0.2, 0, 0.7);
-          break;
-        case "Femur dextrum":
-          positionOffset = new THREE.Vector3(-3, -0.5, 0);
-          break;
-        case "Crus dextrum":
-          positionOffset = new THREE.Vector3(-3, 0, 0);
-          break;
-        case "Genu dextrum":
-          positionOffset = new THREE.Vector3(-3, -0.3, 0);
-          break;
-        case "Pes dexter":
-          positionOffset = new THREE.Vector3(-2.5, 0, 0);
-          break;
-        case "Femur sinistrum":
-          positionOffset = new THREE.Vector3(0.1, -0.5, 0);
-          break;
-        case "Crus sinistrum":
-          positionOffset = new THREE.Vector3(0, 0, 0);
-          break;
-        case "Genu sinistrum":
-          positionOffset = new THREE.Vector3(0.3, -0.3, 0);
-          break;
-        case "Pes sinister":
-          positionOffset = new THREE.Vector3(0, 0, 0);
-          break;
-        default:
-          positionOffset = new THREE.Vector3(0, 1, 0);
-      }
+        switch (latinName) {
+          case "Columna vertebralis":
+            positionOffset = new THREE.Vector3(1.8, 2.4, 0.5);
+            break;
+          case "Cranium":
+            positionOffset = new THREE.Vector3(2.8, 1, 0);
+            break;
+          case "Coxa":
+            positionOffset = new THREE.Vector3(2.8, 2.5, 0.1);
+            break;
+          case "Humerus sinistrum":
+            positionOffset = new THREE.Vector3(2.8, 1.5, 0);
+            break;
+          case "Antebrachium sinistrum":
+            positionOffset = new THREE.Vector3(2, 2.5, 0);
+            break;
+          case "Manus sinistra":
+            positionOffset = new THREE.Vector3(2, 3.2, 0);
+            break;
+          case "Humerus dextrum":
+            positionOffset = new THREE.Vector3(1.7, 1.5, 0);
+            break;
+          case "Antebrachium dextrum":
+            positionOffset = new THREE.Vector3(1.7, 2.5, 0);
+            break;
+          case "Manus dextra":
+            positionOffset = new THREE.Vector3(2.7, 3.3, 0);
+            break;
+          case "Thorax":
+            positionOffset = new THREE.Vector3(2.7, 1, 0.7);
+            break;
+          case "Femur dextrum":
+            positionOffset = new THREE.Vector3(1.5, 3.3, 0);
+            break;
+          case "Crus dextrum":
+            positionOffset = new THREE.Vector3(1.8, 4.85, 0);
+            break;
+          case "Genu dextrum":
+            positionOffset = new THREE.Vector3(1.5, 4.3, 0);
+            break;
+          case "Pes dexter":
+            positionOffset = new THREE.Vector3(2, 5.8, 0);
+            break;
+          case "Femur sinistrum":
+            positionOffset = new THREE.Vector3(3, 3.3, 0);
+            break;
+          case "Crus sinistrum":
+            positionOffset = new THREE.Vector3(3, 4.8, 0);
+            break;
+          case "Genu sinistrum":
+            positionOffset = new THREE.Vector3(3, 4.3, 0);
+            break;
+          case "Pes sinister":
+            positionOffset = new THREE.Vector3(3, 5.7, 0);
+            break;
+          default:
+            positionOffset = new THREE.Vector3(0, 1, 0);
+        }
 
-
-      addLabel(latinName, gltf.scene, positionOffset);
+        addLabel(latinName, gltf.scene, positionOffset);
       },
       function (xhr) {
         console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
@@ -194,6 +194,7 @@ function main() {
       }
     });
   }
+
   // Hier alle verbergen oder sichtbar machen
 
   guiVisibileControl
@@ -228,25 +229,25 @@ function main() {
     }
 
     const textGeometry = new THREE.TextGeometry(name, {
-      size: 0.35,
+      size: 0.18,
       height: 0.1,
       font: loadedFont,
     });
     const textMaterial = new THREE.MeshPhongMaterial({
-      color: 0xff00ff,
-      shininess: 50,
+      color: 0xff22ff,
+      shininess: 20,
     });
-  
+
     const textMesh = new THREE.Mesh(textGeometry, textMaterial);
 
-  
     const boundingBox = new THREE.Box3().setFromObject(model);
     const modelHeight = boundingBox.max.y - boundingBox.min.y;
     textMesh.position.copy(boundingBox.getCenter(new THREE.Vector3()));
     textMesh.position.add(positionOffset);
     textMesh.visible = labelsVisible;
     labelObjects.push(textMesh);
-    scene.add(textMesh);
+    model.add(textMesh);
+    //scene.add(textMesh);
   }
 
   //Trackball Control mit der Maus
@@ -262,6 +263,82 @@ function main() {
     labelObjects.forEach((label) => {
       label.visible = labelsVisible;
     });
+  });
+
+  //QUIZ zugehörigen Funktionen
+  let question = null;
+  let score = 0;
+  const bodyParts = Object.keys(modelPathAndNames);
+  const quizQuestionShow = document.getElementById("quiz-questions");
+  const quizButton = document.getElementById("quiz");
+  let trials = 0;
+  
+  function quiz() {
+    score = 0;
+    trials = 0;
+    quizmode = true;
+    quizQuestionShow.style.display = "block";
+    quizButton.style.backgroundColor = "#ff0000";
+    quizButton.textContent = "Stop Quiz";
+    quizQuestion();
+  }
+
+  function quizQuestion() {
+    if(trials == 5){
+      if(score == 5){
+        alert("Alle richtig JUHU");
+        return;
+      }
+      alert(`Quiz beendet. Du hast ${score}/10 richtig erkannt."`);
+      quizmode = false;
+      quizButton.textContent = "Start Quiz";
+      quizButton.style.backgroundColor = "";
+      quizQuestionShow.style.display = "none";
+      return;
+    }
+    const randomIndex = Math.floor(Math.random() * bodyParts.length);
+    question = bodyParts[randomIndex];
+    const latinName = modelPathAndNames[question];
+
+    quizQuestionShow.innerHTML = `Wo befindet sich <strong>${latinName}</strong>?`;
+  }
+
+  //Listener für den Quiz Button
+  document.addEventListener("click", function () {
+    if(!quizmode) return;
+
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(Object.values(models), true);
+
+    if (intersects.length > 0) {
+      const intersectedObject = intersects[0].object;
+      const clickedPart = intersectedObject.parent.userData.modelKey;
+
+      if (clickedPart === modelPathAndNames[question]) {
+        score++;
+        alert(`Richtig! Dein Punktestand ist: ${score}`);
+      } else {
+        alert(`Falsch!`);
+      }
+
+      question = null;
+      trials++;
+      quizQuestion();
+    }
+  });
+
+  quizButton.addEventListener("click", function () {
+    if (!quizmode) {
+      quiz();
+    } else {
+      quizmode = false;
+      quizButton.textContent = "Start Quiz";
+      quizButton.style.backgroundColor = "";
+      quizQuestionShow.style.display = "none";
+    }
   });
 
   function mouseHover(event) {
@@ -282,11 +359,12 @@ function main() {
         intersected.currentHex = intersected.material.color.getHex();
         intersected.material.color.setHex(0x800080);
       }
-
-      label.style.display = "block";
-      label.style.left = event.clientX + 10 + "px";
-      label.style.top = event.clientY + 10 + "px";
-      label.textContent = intersected.parent.userData.modelKey || "Incorrect";
+      if (!quizmode && !labelsVisible) {
+        label.style.display = "block";
+        label.style.left = event.clientX + 10 + "px";
+        label.style.top = event.clientY + 10 + "px";
+        label.textContent = intersected.parent.userData.modelKey || "Incorrect";
+      }
     } else {
       if (intersected)
         intersected.material.color.setHex(intersected.currentHex);
@@ -306,9 +384,6 @@ function main() {
 
     skeleton.forEach((skeleton) => {
       skeleton.rotation.y = -controls.rotY;
-    });
-    labelObjects.forEach((label) =>{
-      label.rotation.y = -controls.rotY;
     });
 
     requestAnimationFrame(animate);
