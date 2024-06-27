@@ -247,7 +247,6 @@ function main() {
     textMesh.visible = labelsVisible;
     labelObjects.push(textMesh);
     model.add(textMesh);
-    //scene.add(textMesh);
   }
 
   //Trackball Control mit der Maus
@@ -284,9 +283,9 @@ function main() {
   }
 
   function quizQuestion() {
-    if(trials == 5){
-      if(score == 5){
-        alert("Alle richtig JUHU");
+    if(trials == 10){
+      if(score == 10){
+        alert("Du hast alle richtig erraten!!! Herzlichen Glückwunsch");
         return;
       }
       alert(`Quiz beendet. Du hast ${score}/10 richtig erkannt."`);
