@@ -280,6 +280,7 @@ function main() {
   const quizButton = document.getElementById("quiz");
   let trials = 0;
   let previousBodyPart = null;
+  let targetTrials = 3;
 
   function quiz() {
     score = 0;
@@ -292,12 +293,12 @@ function main() {
   }
 
   function quizQuestion() {
-    if (trials == 3) {
-      if (score == 3) {
-        displayEndOfQuiz("Herzlichen Glückwunsch!! Alle richtig!!")
+    if (trials == targetTrials) {
+      if (score == targetTrials) {
+        displayEndOfQuiz("Herzlichen Glückwunsch!! Alle richtig!!", true);
         return;
       }
-      displayEndOfQuiz(`Quiz beendet. Du hast ${score}/10 richtig erkannt."`)
+      displayEndOfQuiz(`Quiz beendet. Du hast ${score}/${targetTrials} richtig erkannt.`, false);
       return;
     }
     let randomIndex;
@@ -319,8 +320,10 @@ function main() {
       quizQuestionShow.style.display = "none";
   }
 
-  function displayEndOfQuiz(message){
-    confettiOnOrOff(true);
+  function displayEndOfQuiz(message, won){
+    if(won){
+      confettiOnOrOff(true);
+    }
     const endDisplay = document.getElementById("endDisplay");
     const text = document.getElementById("endText");
     text.textContent = message;
@@ -359,8 +362,21 @@ function main() {
         score++;
         alert(`Richtig! Dein Punktestand ist: ${score}`);
       } else {
-        //hier an der Stelle soll das Körperteil in Blau angefärbt werden, welches das richtige gewesen wäre...
-        alert(`Falsch! ${question} wäre hier gewesen.`);
+        const correctModel = models[modelPathAndNames[question]];
+        correctModel.traverse((child) => {
+          if (child.isMesh) {
+            child.currentHex = child.material.color.getHex();
+            child.material.color.setHex(0x0000ff);
+          }
+        });
+        setTimeout(() => {
+          correctModel.traverse((child) => {
+            if (child.isMesh) {
+              child.material.color.setHex(child.currentHex);
+            }
+          });
+          alert(`Falsch! Das Richtige wäre hier gewesen.`);
+        }, 100);
       }
       question = null;
       trials++;
