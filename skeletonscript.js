@@ -1,3 +1,4 @@
+var scene, camera, renderer, particleSystem;
 main();
 
 function main() {
@@ -7,16 +8,19 @@ function main() {
   let labelsVisible = false;
   let labelObjects = [];
   let quizmode = false;
+  let confetti = false;
 
   var stats = initStats();
   // create context
   const canvas = document.querySelector("#c");
-  const renderer = new THREE.WebGLRenderer({
+  renderer = new THREE.WebGLRenderer({
     canvas,
     antialias: true,
   });
 
+  renderer.setPixelRatio(window.devicePixelRatio);
   renderer.shadowMap.enabled = true;
+  renderer.toneMapping = THREE.ReinhardToneMapping;
   document.body.appendChild(renderer.domElement);
 
   // create camera
@@ -24,7 +28,7 @@ function main() {
   const aspectRatio = canvas.clientWidth / canvas.clientHeight;
   const nearPlane = 0.2;
   const farPlane = 100;
-  const camera = new THREE.PerspectiveCamera(
+  camera = new THREE.PerspectiveCamera(
     angleOfView,
     aspectRatio,
     nearPlane,
@@ -34,10 +38,10 @@ function main() {
   camera.rotation.y = Math.PI / 4;
 
   // create the scene
-  const scene = new THREE.Scene();
+  scene = new THREE.Scene();
   scene.background = new THREE.Color(0.1, 0.2, 0.1);
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
   scene.add(ambientLight);
   const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
   directionalLight.position.set(0, 1, 0);
@@ -250,6 +254,9 @@ function main() {
     model.add(textMesh);
   }
 
+  //Confetti hinzufügen
+  addConfettiParticles();
+
   //Trackball Control mit der Maus
   var trackballControls = new THREE.TrackballControls(camera, canvas);
   var clock = new THREE.Clock();
@@ -272,7 +279,8 @@ function main() {
   const quizQuestionShow = document.getElementById("quiz-questions");
   const quizButton = document.getElementById("quiz");
   let trials = 0;
-  
+  let previousBodyPart = null;
+
   function quiz() {
     score = 0;
     trials = 0;
@@ -284,28 +292,58 @@ function main() {
   }
 
   function quizQuestion() {
-    if(trials == 10){
-      if(score == 10){
-        alert("Du hast alle richtig erraten!!! Herzlichen Glückwunsch");
+    if (trials == 3) {
+      if (score == 3) {
+        displayEndOfQuiz("Herzlichen Glückwunsch!! Alle richtig!!")
         return;
       }
-      alert(`Quiz beendet. Du hast ${score}/10 richtig erkannt."`);
-      quizmode = false;
-      quizButton.textContent = "Start Quiz";
-      quizButton.style.backgroundColor = "";
-      quizQuestionShow.style.display = "none";
+      displayEndOfQuiz(`Quiz beendet. Du hast ${score}/10 richtig erkannt."`)
       return;
     }
-    const randomIndex = Math.floor(Math.random() * bodyParts.length);
-    question = bodyParts[randomIndex];
+    let randomIndex;
+    do {
+      randomIndex = Math.floor(Math.random() * bodyParts.length);
+      question = bodyParts[randomIndex];
+    } while (question == previousBodyPart);
+
     const latinName = modelPathAndNames[question];
+    previousBodyPart = question;
 
     quizQuestionShow.innerHTML = `Wo befindet sich <strong>${latinName}</strong>?`;
   }
 
+  function stopQuiz(){
+      quizmode = false;
+      quizButton.textContent = "Start Quiz";
+      quizButton.style.backgroundColor = "";
+      quizQuestionShow.style.display = "none";
+  }
+
+  function displayEndOfQuiz(message){
+    confettiOnOrOff(true);
+    const endDisplay = document.getElementById("endDisplay");
+    const text = document.getElementById("endText");
+    text.textContent = message;
+    endDisplay.style.display = "block";
+
+    const closeButton = document.querySelector(".close-button");
+    closeButton.onclick = function() {
+        endDisplay.style.display = "none";
+        confettiOnOrOff(false);
+    };
+
+    window.onclick = function(event) {
+        if (event.target == endDisplay) {
+            endDisplay.style.display = "none";
+            confettiOnOrOff(false);
+        }
+    };
+    stopQuiz();
+  }
+
   //Listener für den Quiz Button
   document.addEventListener("click", function () {
-    if(!quizmode) return;
+    if (!quizmode) return;
 
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -321,9 +359,9 @@ function main() {
         score++;
         alert(`Richtig! Dein Punktestand ist: ${score}`);
       } else {
-        alert(`Falsch!`);
+        //hier an der Stelle soll das Körperteil in Blau angefärbt werden, welches das richtige gewesen wäre...
+        alert(`Falsch! ${question} wäre hier gewesen.`);
       }
-
       question = null;
       trials++;
       quizQuestion();
@@ -373,6 +411,65 @@ function main() {
     }
   }
 
+  function addConfettiParticles() {
+    var particleCount = 5000;
+    var particles = new THREE.BufferGeometry();
+    var positions = new Float32Array(particleCount * 3);
+    var colors = new Float32Array(particleCount * 3);
+    var sizes = new Float32Array(particleCount);
+  
+    for (var i = 0; i < particleCount; i++) {
+      var index = i * 3;
+      positions[index] = Math.random() * 40 - 20;
+      positions[index + 1] = Math.random() * 40 - 20;
+      positions[index + 2] = Math.random() * 40 - 20;
+  
+      colors[index] = Math.random();
+      colors[index + 1] = Math.random();
+      colors[index + 2] = Math.random();
+  
+      sizes[i] = Math.random() * 0.5 + 0.2;
+    }
+
+    particles.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+    particles.addAttribute('color', new THREE.BufferAttribute(colors, 3));
+    particles.addAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+  
+    //Hier ShaderMaterial anstatt PointMaterial
+    var particleMaterial = new THREE.ShaderMaterial({
+      vertexShader: `
+          attribute float size;
+          varying vec3 vColor;
+  
+          void main() {
+              vColor = color;
+              vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+              gl_PointSize = size * (300.0 / -mvPosition.z);
+              gl_Position = projectionMatrix * mvPosition;
+          }
+      `,
+      fragmentShader: `
+          varying vec3 vColor;
+  
+          void main() {
+              gl_FragColor = vec4(vColor, 1.0);
+          }
+      `,
+      vertexColors: THREE.VertexColors
+  });
+    particleSystem = new THREE.Points(particles, particleMaterial);
+    scene.add(particleSystem);
+    particleSystem.visible = false;
+    console.log("Confetti ist da aber auf invisbile gestezt")
+  }
+
+  function confettiOnOrOff(onOrOff){
+    particleSystem.visible = onOrOff;
+    confetti = onOrOff;
+    console.log(onOrOff)
+  }
+
   function animate() {
     if (resizeGLToDisplaySize(renderer)) {
       const canvas = renderer.domElement;
@@ -381,6 +478,12 @@ function main() {
     }
     trackballControls.update(clock.getDelta());
     stats.update();
+
+    if (confetti == true) {
+      console.log("Rotation des Confetti kann starten")
+      particleSystem.rotation.x += 0.01;
+      particleSystem.rotation.y += 0.01;
+    }
 
     skeleton.forEach((skeleton) => {
       skeleton.rotation.y = -controls.rotY;
