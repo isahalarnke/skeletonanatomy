@@ -70,8 +70,47 @@
             width: 80%;
             text-align: center;
         }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(223, 22, 210);
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #ad68d2;
+            margin: 20% auto;
+            padding: 30px;
+            border: 1px solid #888;
+            width: 80%;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: rgb(224, 75, 214);
+            text-decoration: none;
+            cursor: pointer;
+        }
     </style>
     <script type="text/javascript" charset="UTF-8" src="../libs/three/three.js"></script>
+    <script type="text/javascript" charset="UTF-8" src="../libs/three/three.module.js"></script>
+    <script type="text/javascript" charset="UTF-8" src="../libs/three/three.module.min.js"></script>
     <script type="text/javascript" charset="UTF-8" src="../libs/three/controls/TrackballControls.js"></script>
     <script type="text/javascript" src="../libs/util/Stats.js"></script>
     <script type="text/javascript" src="../libs/util/dat.gui.js"></script>
@@ -90,6 +129,12 @@
     <canvas id="c"></canvas>
     <div id="label"></div>
     <div id="quiz-questions" style="display: none;"></div>
+    <div id="endDisplay" class="modal">
+        <div class="modal-content">
+          <span class="close-button">&times;</span>
+          <p id="endText"></p>
+        </div>
+      </div>
 </body>
 <script type="module" src="./skeletonscript.js"></script>
 </html>

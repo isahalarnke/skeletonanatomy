@@ -67,6 +67,7 @@ function main() {
         models[latinName] = gltf.scene;
         createModelControl(latinName, gltf.scene);
 
+        //Spezifische Positionen für die Labels/Beschriftungen
         let positionOffset;
         switch (latinName) {
           case "Columna vertebralis":
@@ -206,7 +207,7 @@ function main() {
         controls[key] = value;
       });
 
-      // Aktualisieren Sie die Anzeige für jede spezifische Kontrolle
+      // Aktualisieren der Anzeige für jedes Häkchen
       guiVisibileControl.__controllers.forEach(function (controller) {
         if (Object.keys(models).includes(controller.property)) {
           controller.updateDisplay();
