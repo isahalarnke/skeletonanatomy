@@ -1,7 +1,10 @@
+//Globale Variable Partikelsystem für das Konfetti
+
 var scene, camera, renderer, particleSystem;
 main();
 
 function main() {
+
   let raycaster = new THREE.Raycaster();
   let mouse = new THREE.Vector2();
   let intersected;
@@ -23,7 +26,7 @@ function main() {
   renderer.toneMapping = THREE.ReinhardToneMapping;
   document.body.appendChild(renderer.domElement);
 
-  // create camera
+  // Kamera
   const angleOfView = 45;
   const aspectRatio = canvas.clientWidth / canvas.clientHeight;
   const nearPlane = 0.2;
@@ -37,21 +40,48 @@ function main() {
   camera.position.set(-10, 1, 20);
   camera.rotation.y = Math.PI / 4;
 
-  // create the scene
+  // Szene mit Licht
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0.1, 0.2, 0.1);
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
   scene.add(ambientLight);
   const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
   directionalLight.position.set(0, 1, 0);
   scene.add(directionalLight);
 
+  //Laden der Skelett Objekte (glb-Files)
+
+  const modelPathAndNames = {
+    "objects/spine.glb": "Columna vertebralis",
+    "objects/schaedel.glb": "Cranium",
+    "objects/hips.glb": "Coxa",
+    "objects/oberarmlinks.glb": "Humerus sinistrum",
+    "objects/unterarmlinks.glb": "Antebrachium sinistrum",
+    "objects/handlinks.glb": "Manus sinistra",
+    "objects/oberarmrechts.glb": "Humerus dextrum",
+    "objects/unterarmrechts.glb": "Antebrachium dextrum",
+    "objects/handrechts.glb": "Manus dextra",
+    "objects/ripcage.glb": "Thorax",
+    "objects/oberschenkelleft.glb": "Femur dextrum",
+    "objects/unterschenkelleft.glb": "Crus dextrum",
+    "objects/knieleft.glb": "Genu dextrum",
+    "objects/fussleft.glb": "Pes dexter",
+    "objects/oberschenkelright.glb": "Femur sinistrum",
+    "objects/unterschenkelright.glb": "Crus sinistrum",
+    "objects/knieright.glb": "Genu sinistrum",
+    "objects/fussright.glb": "Pes sinister",
+  };
+
+  // Für das gemeinsame Rotieren des gesamten Skelets in der Control Methode
+  const skeleton = [];
+
+
   var gltflLoader = new THREE.GLTFLoader();
 
   const models = {};
 
-  function loadGLTFModel(modelPath, scene, parent) {
+  function loadGLTFModel(modelPath, scene) {
     const latinName = modelPathAndNames[modelPath];
 
     console.log(latinName);
@@ -69,6 +99,8 @@ function main() {
         scene.add(gltf.scene);
         skeleton.push(gltf.scene);
         models[latinName] = gltf.scene;
+
+        // Tick Box für die Control
         createModelControl(latinName, gltf.scene);
 
         //Spezifische Positionen für die Labels/Beschriftungen
@@ -143,45 +175,23 @@ function main() {
     );
   }
 
-  const skeleton = []; // Für das gemeinsame Rotieren des gesamten Skelets in der Control Methode
-  // Objektpfade im Array speichern und in einer Schleife laden
-
-  const modelPathAndNames = {
-    "objects/spine.glb": "Columna vertebralis",
-    "objects/schaedel.glb": "Cranium",
-    "objects/hips.glb": "Coxa",
-    "objects/oberarmlinks.glb": "Humerus sinistrum",
-    "objects/unterarmlinks.glb": "Antebrachium sinistrum",
-    "objects/handlinks.glb": "Manus sinistra",
-    "objects/oberarmrechts.glb": "Humerus dextrum",
-    "objects/unterarmrechts.glb": "Antebrachium dextrum",
-    "objects/handrechts.glb": "Manus dextra",
-    "objects/ripcage.glb": "Thorax",
-    "objects/oberschenkelleft.glb": "Femur dextrum",
-    "objects/unterschenkelleft.glb": "Crus dextrum",
-    "objects/knieleft.glb": "Genu dextrum",
-    "objects/fussleft.glb": "Pes dexter",
-    "objects/oberschenkelright.glb": "Femur sinistrum",
-    "objects/unterschenkelright.glb": "Crus sinistrum",
-    "objects/knieright.glb": "Genu sinistrum",
-    "objects/fussright.glb": "Pes sinister",
-  };
-
   Object.keys(modelPathAndNames).forEach((path) => loadGLTFModel(path, scene));
 
-  //GUI Control
+  //Controls
   var controls = new (function () {
     this.rotY = 0;
     this.allBodyparts = true;
   })();
 
-  // GUI control zum Rotieren
+  //GUI zum Rotieren
   var gui = new dat.GUI();
   gui.add(controls, "rotY", 0, 2 * Math.PI);
+
 
   // GUI control zum Kästchen anticken, demnach Objekt sichtbar oder unsichtbar
   var guiVisibileControl = new dat.GUI();
 
+  //Wird für jedes Körperteil im Schleifenaufruf erstellt
   function createModelControl(name, model) {
     controls[name] = true;
     guiVisibileControl
@@ -190,17 +200,9 @@ function main() {
       .onChange(function (value) {
         model.visible = value;
       });
-    controls.allVisible = Object.keys(models).every(
-      (key) => models[key].visible
-    );
-    gui.__controllers.forEach(function (controller) {
-      if (controller.property === "allVisible") {
-        controller.updateDisplay();
-      }
-    });
   }
 
-  // Hier alle verbergen oder sichtbar machen
+  // Hier alle verbergen oder sichtbar machen bei Häkchen "Skeleton"
 
   guiVisibileControl
     .add(controls, "allBodyparts")
@@ -232,7 +234,6 @@ function main() {
       setTimeout(() => addLabel(name, model, positionOffset), 100);
       return;
     }
-
     const textGeometry = new THREE.TextGeometry(name, {
       size: 0.18,
       height: 0.1,
@@ -246,16 +247,12 @@ function main() {
     const textMesh = new THREE.Mesh(textGeometry, textMaterial);
 
     const boundingBox = new THREE.Box3().setFromObject(model);
-    const modelHeight = boundingBox.max.y - boundingBox.min.y;
     textMesh.position.copy(boundingBox.getCenter(new THREE.Vector3()));
     textMesh.position.add(positionOffset);
     textMesh.visible = labelsVisible;
     labelObjects.push(textMesh);
     model.add(textMesh);
   }
-
-  //Confetti hinzufügen
-  addConfettiParticles();
 
   //Trackball Control mit der Maus
   var trackballControls = new THREE.TrackballControls(camera, canvas);
@@ -272,7 +269,7 @@ function main() {
     });
   });
 
-  //QUIZ zugehörigen Funktionen
+  //QUIZ-zugehörigen Funktionen
   let question = null;
   let score = 0;
   const bodyParts = Object.keys(modelPathAndNames);
@@ -280,7 +277,7 @@ function main() {
   const quizButton = document.getElementById("quiz");
   let trials = 0;
   let previousBodyPart = null;
-  let targetTrials = 3;
+  let targetTrials = 5;
 
   function quiz() {
     score = 0;
@@ -302,6 +299,8 @@ function main() {
       return;
     }
     let randomIndex;
+
+    //Sicherstellen, dass nicht dieselben Frage direkt aufeinander folgen
     do {
       randomIndex = Math.floor(Math.random() * bodyParts.length);
       question = bodyParts[randomIndex];
@@ -344,7 +343,7 @@ function main() {
     stopQuiz();
   }
 
-  //Listener für den Quiz Button
+  //Listener für das Quiz, wenn die Körperteile angeklickt werden
   document.addEventListener("click", function () {
     if (!quizmode) return;
 
@@ -375,6 +374,7 @@ function main() {
               child.material.color.setHex(child.currentHex);
             }
           });
+          const latinName = modelPathAndNames[question];
           alert(`Falsch! Das Richtige wäre hier gewesen.`);
         }, 100);
       }
@@ -384,6 +384,7 @@ function main() {
     }
   });
 
+  // Listener für den Quiz-Button
   quizButton.addEventListener("click", function () {
     if (!quizmode) {
       quiz();
@@ -426,6 +427,8 @@ function main() {
       label.style.display = "none";
     }
   }
+
+  // Konfetti läuft seit Beginn, wird aber auf invisible gesetzt
 
   function addConfettiParticles() {
     var particleCount = 5000;
@@ -477,7 +480,7 @@ function main() {
     particleSystem = new THREE.Points(particles, particleMaterial);
     scene.add(particleSystem);
     particleSystem.visible = false;
-    console.log("Confetti ist da aber auf invisbile gestezt")
+    console.log("Confetti ist da aber auf invisbile gesetzt")
   }
 
   function confettiOnOrOff(onOrOff){
@@ -485,6 +488,8 @@ function main() {
     confetti = onOrOff;
     console.log(onOrOff)
   }
+
+  addConfettiParticles();
 
   function animate() {
     if (resizeGLToDisplaySize(renderer)) {
