@@ -13,6 +13,14 @@ function main() {
   let quizmode = false;
   let confetti = false;
 
+  let moveLeft = false;
+  let moveRight = false;
+  let moveUp = false;
+  let moveDown = false;
+  let moveSpeed = 0.1;
+
+  let skeletonGroup;
+
   var stats = initStats();
   // create context
   const canvas = document.querySelector("#c");
@@ -37,8 +45,9 @@ function main() {
     nearPlane,
     farPlane
   );
-  camera.position.set(-10, 1, 20);
-  camera.rotation.y = Math.PI / 4;
+  camera.position.set(-2, 1.6, 20);
+  camera.lookAt(0, 1.6, 0);
+
 
   // Szene mit Licht
   scene = new THREE.Scene();
@@ -49,6 +58,9 @@ function main() {
   const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
   directionalLight.position.set(0, 1, 0);
   scene.add(directionalLight);
+
+  skeletonGroup = new THREE.Group();
+  scene.add(skeletonGroup);
 
   //Laden der Skelett Objekte (glb-Files)
 
@@ -96,7 +108,7 @@ function main() {
         gltf.scene.rotation.y = -Math.PI / 6;
         gltf.scene.userData.modelKey = latinName; // Das Model verfügt dann über einen Key
 
-        scene.add(gltf.scene);
+        skeletonGroup.add(gltf.scene);
         skeleton.push(gltf.scene);
         models[latinName] = gltf.scene;
 
@@ -396,6 +408,41 @@ function main() {
     }
   });
 
+ document.addEventListener("keydown", function (event) {
+  switch (event.code) {
+    case "ArrowUp":
+      moveUp = true;
+      break;
+    case "ArrowDown":
+      moveDown = true;
+      break;
+    case "ArrowLeft":
+      moveLeft = true;
+      break;
+    case "ArrowRight":
+      moveRight = true;
+      break;
+  }
+});
+
+document.addEventListener("keyup", function (event) {
+  switch (event.code) {
+    case "ArrowUp":
+      moveUp = false;
+      break;
+    case "ArrowDown":
+      moveDown = false;
+      break;
+    case "ArrowLeft":
+      moveLeft = false;
+      break;
+    case "ArrowRight":
+      moveRight = false;
+      break;
+  }
+});
+
+
   function mouseHover(event) {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -509,6 +556,12 @@ function main() {
     skeleton.forEach((skeleton) => {
       skeleton.rotation.y = -controls.rotY;
     });
+
+    const direction = new THREE.Vector3();
+    if (moveUp) skeletonGroup.position.y += moveSpeed;
+    if (moveDown) skeletonGroup.position.y -= moveSpeed;
+    if (moveLeft) skeletonGroup.position.x -= moveSpeed;
+    if (moveRight) skeletonGroup.position.x += moveSpeed;
 
     requestAnimationFrame(animate);
     renderer.render(scene, camera);
